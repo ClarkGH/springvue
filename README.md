@@ -20,8 +20,6 @@ This means:
 
 YAGNI'ing up a spring & vue SPA monolith proof of concept. Doesn't need to be pretty. Just need endpoints to get/post/put/delete to. Not doing server side rendering, SEO is irrelevant.
 
-Might throw up some junk code and never return. 3 side-projects in-progress. Many discarded along the wayside. Few completed. Not sorry.
-
 ## Stack?
 
 1. Vite / Vue 3 / Pinia - Frontend
@@ -88,4 +86,3 @@ From the project root:
   - Fix: Bean validation. @Size on DTOs. @Column (length) on entities
 - Constant-time login
   - Fix: Always run BCrypt, use dummy hash when user missing
-  
