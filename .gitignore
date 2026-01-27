@@ -1,0 +1,55 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Dependencies & build
+node_modules
+dist
+dist-ssr
+*.local
+
+# Backend (Java / Maven / Spring)
+target/
+build/
+out/
+.apt_generated/
+.factorypath
+*.class
+
+# Eclipse
+.settings/
+.classpath
+.project
+
+# Spring
+.springBeans
+spring-boot-devtools.properties
+application-local.yml
+application-local.yaml
+
+# IDE & editor
+.DS_Store
+**/.vscode/*
+!**/.vscode/extensions.json
+.idea
+*.iml
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Coverage & test artifacts
+coverage
+**/cypress/videos/
+**/cypress/screenshots/
+__screenshots__/
+
+# Misc
+*.tsbuildinfo
+.eslintcache
