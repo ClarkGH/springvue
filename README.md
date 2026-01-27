@@ -38,7 +38,7 @@ Rules, architecture, and diagrams live in **[DESIGN.md](DESIGN.md)**. Start ther
 
 ## How to run
 
-**Requirements:** Java 17+ (Spring Boot 3), Node 18+, pnpm, PostgreSQL. If you have multiple JDKs, set `JAVA_HOME` to a 17+ installation before running Maven.
+**Requirements:** Java 17+, Node 18+, pnpm, PostgreSQL.
 
 ### Database
 
@@ -63,47 +63,16 @@ Sensitive values (DB URL/user/password, JWT secret) are set via env vars or a lo
 - **Local file** (gitignored):  
   Copy `backend/src/main/resources/application-local.yml.example` to `application-local.yml`, fill in values, then run with `--spring.profiles.active=local` (e.g. `./run.sh -Dspring-boot.run.profiles=dev,local`).
 
-### Development
+### Build and run
 
-1. **Backend**
-
-   From project root:
-
-   ```bash
-   ./run.sh -Dspring-boot.run.profiles=dev
-   ```
-
-   Or from the backend directory: `cd backend && ./mvnw spring-boot:run -Dspring-boot.run.profiles=dev`.
-
-   Uses `dev` profile: seeds user `user` / password `password` if none exist. Defaults: Postgres at `localhost:5432`, DB `springvue`, user `springvue`.
-
-2. **Frontend**
-
-   ```bash
-   cd frontend
-   pnpm install
-   pnpm dev
-   ```
-
-   Vite runs the SPA and **proxies `/api` to the backend** (see [DESIGN.md](DESIGN.md)). Use the app at the Vite URL (e.g. `http://localhost:5173`). Log in with `user` / `password` in dev.
-
-### Production (single artifact)
-
-From the project root, run the build script:
+From the project root:
 
 ```bash
 ./build.sh
-```
-
-This installs frontend deps, builds the Vue app, and copies `frontend/dist/*` into `backend/src/main/resources/static/`. Then run the backend from root:
-
-```bash
 ./run.sh
 ```
 
-(Or `cd backend && ./mvnw spring-boot:run`, or build the JAR with `./mvnw package` and run the JAR.) The app and API are served from the same origin; open the backend URL (e.g. `http://localhost:8080`).
-
-To do it manually: build in `frontend` with `pnpm build`, then `cp -r frontend/dist/* backend/src/main/resources/static/`.
+`build.sh` installs frontend deps, builds the Vue app, and copies it into the backend static folder. `run.sh` starts the Spring Boot server. Open the app at the backend URL (e.g. `http://localhost:8080`).
 
 ## Known issues
 
