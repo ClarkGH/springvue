@@ -1,0 +1,20 @@
+# Local / non-committed config for secrets and overrides.
+#
+# 1. Copy this file to application-local.yml (or application-local.yaml).
+# 2. Fill in real values. application-local.yml is gitignored.
+# 3. Run with: --spring.profiles.active=local
+#
+# Alternatively, set env vars (no local file needed):
+#   SPRING_DATASOURCE_URL, SPRING_DATASOURCE_USERNAME, SPRING_DATASOURCE_PASSWORD
+#   APP_JWT_SECRET, APP_JWT_EXPIRATION_MS
+
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/springvue
+    username: springvue
+    password: your-db-password
+
+app:
+  jwt:
+    secret: your-min-32-byte-secret-for-hs256-at-least-256-bits-recommended
+    expiration-ms: 86400000

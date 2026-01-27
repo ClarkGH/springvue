@@ -1,0 +1,28 @@
+# Sensitive values are overridden by env vars below. For local overrides without
+# env vars, copy application-local.yml.example to application-local.yml, fill in
+# values, and run with: --spring.profiles.active=local
+
+spring:
+  application:
+    name: backend
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/springvue}
+    username: ${SPRING_DATASOURCE_USERNAME:springvue}
+    password: ${SPRING_DATASOURCE_PASSWORD:springvue}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        default_schema: public
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+
+server:
+  port: 8080
+
+app:
+  jwt:
+    secret: ${APP_JWT_SECRET:springvue-dev-secret-min-256-bits-for-hs256-please-override-in-prod}
+    expiration-ms: ${APP_JWT_EXPIRATION_MS:86400000}

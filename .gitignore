@@ -10,6 +10,7 @@ lerna-debug.log*
 # Dependencies & build
 node_modules
 dist
+package-lock.json
 dist-ssr
 *.local
 
@@ -53,3 +54,11 @@ __screenshots__/
 # Misc
 *.tsbuildinfo
 .eslintcache
+
+# Env / secrets (backend uses application-local.yml; frontend may use .env)
+.env
+.env.local
+.env.*.local
+
+# Backend Static Folder
+backend/src/main/resources/static
