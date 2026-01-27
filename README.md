@@ -28,4 +28,3 @@ Might throw up some junk code and never return. 3 side-projects in-progress. Man
 4. Typescript / Java - Languages for Vue and Spring
 5. Mermaid diagrams!
 6. css (we're going native)
-7. 
