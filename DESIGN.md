@@ -21,6 +21,38 @@ Rules, guidelines, architecture, and diagrams for the Spring/Vue TODO monolith.
 
 ---
 
+## Diagrams
+
+### Request flow
+
+High-level path for a typical request: browser → Vue SPA → Spring API → Postgres.
+
+```mermaid
+flowchart LR
+  Browser --> VueSPA
+  VueSPA -->|"/api/*"| SpringAPI
+  SpringAPI --> Postgres
+```
+
+### Auth flow
+
+Login and subsequent authenticated requests. The SPA stores the JWT in Pinia and sends it on each API call.
+
+```mermaid
+sequenceDiagram
+  participant Vue as VueSPA
+  participant API as SpringAPI
+  Vue->>API: POST /api/auth/login (user, pass)
+  API->>API: Verify, hash check
+  API-->>Vue: JWT
+  Vue->>Vue: Store in Pinia
+  Vue->>API: GET /api/todos (Header: Bearer JWT)
+  API->>API: Validate JWT, resolve user
+  API-->>Vue: Todos
+```
+
+---
+
 ## Delivery
 
 - **Production**: One deployable artifact. Run `./build.sh`, then `./run.sh`. Spring serves the built Vue app from `/` and exposes a JSON API under `/api`. Same origin for SPA and API. Open <http://localhost:8080>.
@@ -211,33 +243,3 @@ When evolving toward high concurrency and large data, apply in roughly this orde
 7. **Rate limiting and observability** in parallel so the system can be measured and protected.
 
 ---
-
-## Diagrams
-
-### Request flow
-
-High-level path for a typical request: browser → Vue SPA → Spring API → Postgres.
-
-```mermaid
-flowchart LR
-  Browser --> VueSPA
-  VueSPA -->|"/api/*"| SpringAPI
-  SpringAPI --> Postgres
-```
-
-### Auth flow
-
-Login and subsequent authenticated requests. The SPA stores the JWT in Pinia and sends it on each API call.
-
-```mermaid
-sequenceDiagram
-  participant Vue as VueSPA
-  participant API as SpringAPI
-  Vue->>API: POST /api/auth/login (user, pass)
-  API->>API: Verify, hash check
-  API-->>Vue: JWT
-  Vue->>Vue: Store in Pinia
-  Vue->>API: GET /api/todos (Header: Bearer JWT)
-  API->>API: Validate JWT, resolve user
-  API-->>Vue: Todos
-```
