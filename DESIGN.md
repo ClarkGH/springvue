@@ -91,6 +91,56 @@ This gives deterministic, versioned schema evolution, ensures the dev seed runs 
 
 **PostgreSQL 15+**: The `public` schema no longer grants create to all roles by default. The app DB user (e.g. `springvue`) must have `GRANT ALL ON SCHEMA public` and `GRANT CREATE ON SCHEMA public`. Run these as a superuser (e.g. `sudo -u postgres psql`) in the target database. See README → Database for the exact SQL.
 
+### Querying the database (psql)
+
+To inspect data via the CLI, connect with `psql` using the same host, port, database, and credentials as the app (see `application.yml`; defaults: host `localhost`, port `5432`, database `springvue`, user `springvue`, password `springvue`):
+
+```bash
+psql -h localhost -p 5432 -U springvue -d springvue
+```
+
+Supply the password when prompted, or non-interactively:
+
+```bash
+PGPASSWORD=springvue psql -h localhost -p 5432 -U springvue -d springvue
+```
+
+Useful commands and queries once connected:
+
+- List tables: `\dt`
+- Describe a table: `\d users` or `\d todos`
+- List users: `SELECT id, username, created_at FROM users;`
+- List todos with owner: `SELECT t.id, t.title, t.completed, t.created_at, u.username FROM todos t JOIN users u ON t.user_id = u.id ORDER BY t.created_at DESC;`
+- Run a one-off query from the shell: `PGPASSWORD=springvue psql -h localhost -p 5432 -U springvue -d springvue -c "SELECT * FROM users;"`
+- Quit: `\q`
+
+### Clearing the database
+
+**Wipe data, keep schema** (dev reset): truncate tables so Flyway schema stays and you can re-seed. From the shell:
+
+```bash
+PGPASSWORD=springvue psql -h localhost -p 5432 -U springvue -d springvue -c "TRUNCATE todos CASCADE; TRUNCATE users CASCADE;"
+```
+
+If truncation fails due to FK order, run `TRUNCATE todos;` then `TRUNCATE users;` in separate `-c` invocations.
+
+**Full reset** (drop and recreate DB): removes schema and data. Requires superuser and no active connections to `springvue`. Terminate backends, then drop and recreate:
+
+```bash
+sudo -u postgres psql -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = 'springvue' AND pid <> pg_backend_pid();"
+sudo -u postgres psql -c "DROP DATABASE springvue;"
+sudo -u postgres psql -c "CREATE DATABASE springvue OWNER springvue;"
+```
+
+Re-run the README → Database grants on `public` for the `springvue` user. On next app start, Flyway recreates tables.
+
+### Freeing ports
+
+To free a port so another app can bind to it:
+
+- **Port 8080 (Spring Boot)**: Stop the process that started via `./run.sh` (Ctrl+C in that terminal). If it’s elsewhere, find it with `lsof -i :8080` or `ss -tlnp | grep 8080`, then `kill <PID>`, or run `pkill -f "spring-boot:run"`.
+- **Port 5432 (PostgreSQL)**: Stop the Postgres server. How depends on install: `systemctl stop postgresql` (or `postgresql@15` etc.), or `brew services stop postgresql@15` on macOS, or the `pg_ctl stop` equivalent for your setup.
+
 ---
 
 ## Entities
