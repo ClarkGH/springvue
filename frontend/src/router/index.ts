@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import TodoListView from '../views/TodoListView.vue'
+import UnfunnyView from '../views/UnfunnyView.vue'
 import LoginView from '../views/LoginView.vue'
 import { useAuthStore } from '@/stores/auth'
 
@@ -10,6 +11,12 @@ const router = createRouter({
       path: '/',
       name: 'todos',
       component: TodoListView,
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/unfunny',
+      name: 'unfunny',
+      component: UnfunnyView,
       meta: { requiresAuth: true },
     },
     {

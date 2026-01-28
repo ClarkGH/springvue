@@ -109,6 +109,9 @@ function logout() {
         <button type="button" class="delete" @click="deleteTodo(todo.id)">Delete</button>
       </li>
     </ul>
+    <p class="unfunny-link">
+      <RouterLink to="/unfunny">unfunny</RouterLink>
+    </p>
   </div>
 </template>
 
@@ -186,5 +189,10 @@ function logout() {
 .error {
   color: #c00;
   margin-bottom: 0.5rem;
+}
+
+.unfunny-link {
+  margin-top: 1rem;
+  margin-bottom: 0;
 }
 </style>
