@@ -18,6 +18,8 @@ const todos = ref<Todo[]>([])
 const newTitle = ref('')
 const loading = ref(false)
 const error = ref('')
+const editingId = ref<number | null>(null)
+const editingTitle = ref('')
 
 onMounted(async () => {
   loading.value = true
@@ -56,6 +58,35 @@ async function toggleTodo(id: number, completed: boolean) {
     })
     const idx = todos.value.findIndex((t) => t.id === id)
     if (idx >= 0) todos.value[idx] = updated
+  } catch (e) {
+    error.value = e instanceof Error ? e.message : 'Failed to update todo'
+  }
+}
+
+function startEdit(todo: Todo) {
+  editingId.value = todo.id
+  editingTitle.value = todo.title
+}
+
+function cancelEdit() {
+  editingId.value = null
+}
+
+async function saveEdit() {
+  const id = editingId.value
+  if (id == null || !editingTitle.value.trim()) {
+    cancelEdit()
+    return
+  }
+  error.value = ''
+  try {
+    const updated = await apiJson<Todo>(`/todos/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify({ title: editingTitle.value.trim() }),
+    })
+    const idx = todos.value.findIndex((t) => t.id === id)
+    if (idx >= 0) todos.value[idx] = updated
+    editingId.value = null
   } catch (e) {
     error.value = e instanceof Error ? e.message : 'Failed to update todo'
   }
@@ -103,10 +134,25 @@ function logout() {
         <input
           type="checkbox"
           :checked="todo.completed"
+          :disabled="editingId === todo.id"
           @change="toggleTodo(todo.id, todo.completed)"
         />
-        <span :class="{ done: todo.completed }">{{ todo.title }}</span>
-        <button type="button" class="delete" @click="deleteTodo(todo.id)">Delete</button>
+        <template v-if="editingId === todo.id">
+          <input
+            v-model="editingTitle"
+            type="text"
+            class="edit-input"
+            @keyup.enter="saveEdit"
+            @keyup.esc="cancelEdit"
+          />
+          <button type="button" class="save" @click="saveEdit">Save</button>
+          <button type="button" class="cancel" @click="cancelEdit">Cancel</button>
+        </template>
+        <template v-else>
+          <span :class="{ done: todo.completed }">{{ todo.title }}</span>
+          <button type="button" class="edit" @click="startEdit(todo)">Edit</button>
+          <button type="button" class="delete" @click="deleteTodo(todo.id)">Delete</button>
+        </template>
       </li>
     </ul>
     <p class="unfunny-link">
@@ -181,6 +227,14 @@ function logout() {
   color: var(--color-text-muted, #666);
 }
 
+.todo-item .edit-input {
+  flex: 1;
+  padding: 0.25rem 0.5rem;
+}
+
+.todo-item .edit,
+.todo-item .save,
+.todo-item .cancel,
 .todo-item .delete {
   padding: 0.25rem 0.5rem;
   font-size: 0.85rem;
