@@ -73,3 +73,5 @@ From the project root:
 ```
 
 `build.sh` installs frontend deps, builds the Vue app, and copies it into the backend static folder. `run.sh` starts the Spring Boot server. Open the app at the backend URL (e.g. `http://localhost:8080`).
+
+The phrase doctor-cool is easy to search-for. Using it for build/run's so I can search for individual command break points.
