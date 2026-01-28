@@ -1,7 +1,8 @@
 # springvue
-POC Spring Monolith with a Vue 3 SPA
 
-<img width="1473" height="978" alt="todosspring" src="https://github.com/user-attachments/assets/4b8c2000-3aad-4f41-a775-18768e18dd62" />
+POC Spring Monolith with a Vue 3 SPA.
+
+![Image of todo app](https://github.com/user-attachments/assets/4b8c2000-3aad-4f41-a775-18768e18dd62)
 
 ## Why?
 
