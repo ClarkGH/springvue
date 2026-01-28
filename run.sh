@@ -6,4 +6,4 @@ cd "$ROOT"
 
 (cd backend && ./mvnw spring-boot:run "$@")
 
-echo "Done doctor-cool. Open http://localhost:8080 in your browser after the build completes."
+echo "Server shut down doctor-cool."
