@@ -172,6 +172,46 @@ The browser loads the Vue SPA once. The SPA renders views and, when it needs dat
 
 ---
 
+## Scale (high concurrency and large datasets)
+
+The system is intended to support high concurrency and very large datasets. The following stipulations apply when designing and evolving the stack.
+
+### Database
+
+- **Connection pooling**: Use HikariCP (default in Spring Boot). Tune `maximum-pool-size` per instance so (instances × pool size) stays below Postgres `max_connections`. Use a connection pooler (e.g. PgBouncer) in front of Postgres when many app instances share the DB.
+- **Pagination**: List APIs must never return unbounded result sets. Use **keyset (cursor) pagination** on a stable ordering (e.g. `(created_at, id)`) instead of `OFFSET`, so cost stays constant as data grows. Example: `WHERE user_id = ? AND (created_at, id) < (?, ?) ORDER BY created_at DESC, id DESC LIMIT N`.
+- **Indexes**: Maintain composite indexes that match list and filter access patterns (e.g. `(user_id, created_at DESC, id)` for keyset-paged lists). Add indexes for any new filters or sort orders.
+- **Partitioning**: For very large tables, partition by a key (e.g. `user_id`) or by time. Keep the “hot” partition small; same JPA entities, schema and query patterns change.
+- **Read replicas**: Route read-only, user-scoped queries to replicas via a **routing datasource** (or multi-datasource). Writes stay on the primary. Use when read load justifies it.
+- **Archiving**: Move old or completed rows into archive tables or cold storage so the main table stays small and fast.
+
+### Backend (Spring)
+
+- **Stateless + horizontal scale**: JWT and stateless auth are retained so adding app instances behind a load balancer requires no session affinity.
+- **Virtual threads**: Prefer **virtual threads** (Java 21+) for higher concurrency per instance before introducing reactive (WebFlux). Keep Spring MVC; enable virtual threads and align connection pool and thread usage.
+- **Caching**: Cache “username → userId” (or embed `userId` in the JWT) to avoid a DB round-trip on every request for user resolution. Use Redis (or equivalent) when multiple instances must share cache. Optionally cache first page or counts per user with short TTLs and invalidation on writes.
+- **Backpressure and limits**: Use **rate limiting** (e.g. Bucket4j, Resilience4j, or gateway) so traffic spikes don’t overload the DB or app. Apply **timeouts and circuit breakers** on outbound calls (DB, cache, etc.).
+- **Observability**: Under load, **metrics** (latency, throughput, errors), **tracing** (e.g. OpenTelemetry), and **structured logs** are required so bottlenecks can be found and tuned. Use before and after load tests.
+
+### Frontend (Vue)
+
+- **Pagination in the UI**: Never request or render “all” items for large datasets. The API returns pages; the frontend requests the next page (e.g. “Load more” or infinite scroll).
+- **Virtual scrolling**: When a single page can contain hundreds of rows, use **virtual scrolling** (e.g. vue-virtual-scroller or equivalent) so only visible rows exist in the DOM. Keeps rendering fast with large result sets.
+
+### Order of operations
+
+When evolving toward high concurrency and large data, apply in roughly this order:
+
+1. **Pagination** (keyset) and matching indexes; remove any “load all” list APIs.
+2. **Caching** (or `userId` in JWT) to cut per-request DB load.
+3. **Connection tuning** and, if needed, a pooler (e.g. PgBouncer).
+4. **Virtual threads** (Java 21+) for more concurrency per instance.
+5. **Read replicas + routing** when read load justifies it.
+6. **Partitioning and archiving** when a single table or partition is too large.
+7. **Rate limiting and observability** in parallel so the system can be measured and protected.
+
+---
+
 ## Diagrams
 
 ### Request flow

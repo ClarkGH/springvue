@@ -72,18 +72,3 @@ From the project root:
 ```
 
 `build.sh` installs frontend deps, builds the Vue app, and copies it into the backend static folder. `run.sh` starts the Spring Boot server. Open the app at the backend URL (e.g. `http://localhost:8080`).
-
-## Known issues
-
-- Unenforced JWT key length
-  - Fix: Require at least 32 bytes in JwtService or throw
-- Not rejecting Default Secret
-  - Fix: Fail startup when default secret is used in production
-- Not rate limiting
-  - Fix: Bucket4j/filter on login (optionally API), or do in proxy
-- CORS?
-  - Fix: CORS should be specified when APIs are discerned
-- Input validation
-  - Fix: Bean validation. @Size on DTOs. @Column (length) on entities
-- Constant-time login
-  - Fix: Always run BCrypt, use dummy hash when user missing
