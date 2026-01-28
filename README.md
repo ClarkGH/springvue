@@ -2,7 +2,8 @@
 
 POC Spring Monolith with a Vue 3 SPA.
 
-![Image of todo app](https://github.com/user-attachments/assets/4b8c2000-3aad-4f41-a775-18768e18dd62)
+![Image of todo app](https://github.com/user-attachments/assets/29627667-b850-49ad-acf7-f1431ab38eda)
+
 
 ## Why?
 
