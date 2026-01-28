@@ -23,10 +23,10 @@ Rules, guidelines, architecture, and diagrams for the Spring/Vue TODO monolith.
 
 ## Delivery
 
-- **Production**: One deployable artifact. Run `./build.sh`, then `./run.sh`. Spring serves the built Vue app from `/` and exposes a JSON API under `/api`. Same origin for SPA and API. Open http://localhost:8080.
+- **Production**: One deployable artifact. Run `./build.sh`, then `./run.sh`. Spring serves the built Vue app from `/` and exposes a JSON API under `/api`. Same origin for SPA and API. Open <http://localhost:8080>.
 - **Development** can run in two ways:
-  - **Monolith (one process)**: Run the backend only with the dev profile: `./run.sh -Dspring-boot.run.profiles=dev`. The app is served from Spring at http://localhost:8080. The frontend must be built at least once (e.g. run `./build.sh`, then `./run.sh`). Rebuild the frontend when you change frontend code; there is no hot reload. This matches the case where the frontend has no `dev` script.
-  - **Two-process (optional)**: If the frontend defines a `dev` script (e.g. `"dev": "vite"`), run the backend with `./run.sh -Dspring-boot.run.profiles=dev` and the frontend with `cd frontend && pnpm dev`. The Vite dev server proxies `/api` to the backend (see `vite.config.ts`). Use the Vite URL (e.g. http://localhost:5173) for hot reload.
+  - **Monolith (one process)**: Run the backend only with the dev profile: `./run.sh -Dspring-boot.run.profiles=dev`. The app is served from Spring at <http://localhost:8080>. The frontend must be built at least once (e.g. run `./build.sh`, then `./run.sh`). Rebuild the frontend when you change frontend code; there is no hot reload. This matches the case where the frontend has no `dev` script.
+  - **Two-process (optional)**: If the frontend defines a `dev` script (e.g. `"dev": "vite"`), run the backend with `./run.sh -Dspring-boot.run.profiles=dev` and the frontend with `cd frontend && pnpm dev`. The Vite dev server proxies `/api` to the backend (see `vite.config.ts`). Use the Vite URL (e.g. <http://localhost:5173>) for hot reload.
 
 ---
 
@@ -61,6 +61,47 @@ This gives deterministic, versioned schema evolution, ensures the dev seed runs 
 
 ---
 
+## Entities
+
+JPA entities in `dev.springvue.entity` map to the tables defined by Flyway. Schema is the source of truth; entity mappings must stay in sync (see Schema / Flyway).
+
+- **User** (`entity/User.java`): table `users`. Fields: `id` (PK, identity), `username` (unique, non-null), `passwordHash` (non-null), `createdAt` (non-null, updatable = false). `@PrePersist` sets `createdAt` to `Instant.now()`.
+
+- **Todo** (`entity/Todo.java`): table `todos`. Fields: `id` (PK, identity), `title` (non-null), `completed` (non-null, default false), `createdAt` (non-null, updatable = false), `userId` (non-null, column `user_id`). `@PrePersist` sets `createdAt` to `Instant.now()`.
+
+---
+
+## Repositories
+
+Not git repositories. Think database repositories.
+
+Spring Data JPA repositories in `dev.springvue.repository` extend `JpaRepository`. Controllers and auth use them for persistence; todo access is always scoped by the authenticated user.
+
+- **UserRepository** (`repository/UserRepository.java`): `Optional<User> findByUsername(String username)`. Used by login to resolve a user by username.
+
+- **TodoRepository** (`repository/TodoRepository.java`): `List<Todo> findByUserIdOrderByCreatedAtDesc(Long userId)`. Returns a user’s todos newest-first. The todo controller uses this with the authenticated user’s id so users only see their own todos.
+
+---
+
+## Web
+
+REST controllers and request/response DTOs in `dev.springvue.web`. All `/api/**` endpoints are authenticated except `POST /api/auth/login` (see Security).
+
+### Controllers
+
+- **AuthController** (`web/AuthController.java`): `@RestController` `@RequestMapping("/api/auth")`. `POST /login` accepts `LoginRequest` (username, password); returns 400 if either is null or blank. Looks up user by username, checks password with `PasswordEncoder`, issues JWT via `JwtService`, returns `LoginResponse` (token, username). Returns 401 if user not found or password does not match.
+- **TodoController** (`web/TodoController.java`): `@RestController` `@RequestMapping("/api/todos")`. All handlers resolve the current user from `Authentication` via `UserRepository.findByUsername(auth.getName())`; unauthenticated or unknown user yields 401 or empty list. `GET /` → list todos for current user (newest-first). `POST /` → create todo from `CreateTodoRequest.title`, 400 if title null/blank. `GET /{id}`, `PUT /{id}`, `DELETE /{id}` → get/update/delete only if the todo belongs to the current user; 404 otherwise. Uses `TodoDto` for responses.
+
+### Request / response DTOs
+
+- **LoginRequest** (`web/LoginRequest.java`): `username`, `password`. Jackson `@JsonCreator` / `@JsonProperty` for deserialization.
+- **LoginResponse** (`web/LoginResponse.java`): `token`, `username`. Returned by successful login.
+- **CreateTodoRequest** (`web/CreateTodoRequest.java`): `title`. Body for `POST /api/todos`.
+- **UpdateTodoRequest** (`web/UpdateTodoRequest.java`): `title`, `completed` (both optional). Body for `PUT /api/todos/{id}`; only non-null fields are applied (blank title is ignored).
+- **TodoDto** (`web/TodoDto.java`): `id`, `title`, `completed`, `createdAt`. Used in todo API responses; `TodoDto.from(Todo)` builds from entity.
+
+---
+
 ## Frontend state
 
 **Stipulation:** Todos are used on a single screen only. Use **local component state** (e.g. `ref` in the todo view), not a global store.
@@ -74,13 +115,15 @@ This gives deterministic, versioned schema evolution, ensures the dev seed runs 
 
 In Vue single-file components, `<style>` blocks can be **scoped** or **non-scoped** (global).
 
-**Scoped (`<style scoped>`)**  
+### Scoped (`<style scoped>`)
+
 - CSS applies only to elements in *this* component’s template.  
 - Vue does this by adding a unique data attribute (e.g. `data-v-7ba5bd90`) to the component’s root and descendants, and rewriting selectors so they target that attribute (e.g. `.foo` → `.foo[data-v-7ba5bd90]`).  
 - Use for component-specific layout, typography, and visuals so they don’t affect other views or leak into child components’ content.  
 - **Default choice** for component styles in this project.
 
-**Non-scoped (global) (`<style>` without `scoped`)**  
+### Non-scoped (global) (`<style>` without `scoped`)
+
 - CSS is emitted as-is and affects the whole app.  
 - Use for shared resets, design tokens, or base styles (e.g. in `App.vue` or a shared layout) that are meant to apply everywhere.  
 - Avoid for view- or component-specific rules; they’re hard to reason about and can accidentally override other components.
@@ -99,6 +142,13 @@ In Vue single-file components, `<style>` blocks can be **scoped** or **non-scope
 - **XSS**: Render user-generated content as text only. Do not use `v-html` (or equivalent) with unsanitized data. Vue’s default `{{ }}` escaping is sufficient as long as raw HTML is not introduced.
 - **Input validation**: Enforce bounds on the backend (e.g. max length for todo title, Bean Validation / JSR 380 on DTOs). Use `@Valid` on request bodies so invalid input is rejected before business logic. Keep JPA column lengths in sync (e.g. `@Column(length = 500)`).
 - **Login timing** (optional): For higher assurance against user enumeration, use constant-time login—e.g. always run BCrypt (e.g. against a dummy hash when the user is not found) so response time does not leak “user exists” vs “wrong password.”
+
+### Implementation (dev.springvue)
+
+- **SecurityConfig** (`config/SecurityConfig.java`): Defines two filter chains. (1) For `/api/**`: stateless sessions; `POST /api/auth/login` permitted anonymously; all other `/api/**` require authentication; CSRF disabled; `JwtAuthFilter` runs before `UsernamePasswordAuthenticationFilter`. (2) For `/**`: catches everything else and permits all (SPA static and fallback). Provides a `PasswordEncoder` bean (BCrypt).
+- **JwtAuthFilter** (`security/JwtAuthFilter.java`): `OncePerRequestFilter` that reads `Authorization: Bearer <token>`, validates the token via `JwtService`, and on success sets `SecurityContextHolder` with an `UsernamePasswordAuthenticationToken` whose principal is the username (no authorities). Invalid or missing tokens leave the context unauthenticated; the filter always continues the chain.
+- **JwtService** (`security/JwtService.java`): Builds an HMAC key from `JwtProperties.getSecret()`; `generateToken(username)` issues a JWT with subject, issuedAt, expiration; `getUsernameFromToken(token)` verifies and returns the subject. Does not enforce secret length or reject the default dev secret (see stipulations above).
+- **JwtProperties** (`config/JwtProperties.java`): `@ConfigurationProperties(prefix = "app.jwt")`. Binds `app.jwt.secret` and `app.jwt.expiration-ms` (default 86400000). Consumed by `JwtService` for signing and expiry.
 
 ---
 
