@@ -1,15 +1,18 @@
 # springvue
 
-POC Spring Monolith with a Vue 3 SPA.
+POC 'Super Monolith' with a Vue 3 SPA.
+
+One Spring and one Actix(WIP) server/API hosting similar CRUD applications.
 
 ![Image of todo app](https://github.com/user-attachments/assets/29627667-b850-49ad-acf7-f1431ab38eda)
 
-
 ## Why?
 
-Another "dOn'T wOrRy AbOuT iT bRo", personal project.
+Benchmarking and performance.
 
 Strengthening web architecture skills. I can work with spring java controllers and am solid in javascript.
+
+Rust is new territory.
 
 This means:
 
@@ -25,8 +28,12 @@ YAGNI'ing up a spring & vue SPA monolith proof of concept. Doesn't need to be pr
 ## Stack?
 
 1. Vite / Vue 3 / Pinia - Frontend
-2. Maven / Spring - Backend
-3. Typescript / Java / CSS / XML / HTML - Jargon
+2. Maven / Spring - Backend 1
+3. Rust / Actix - Backend 2
+4. ???
+5. ???
+6. PostgreSQL - DB
+7. Rust / Typescript / Java / CSS / XML / HTML - Jargon
 
 ---
 

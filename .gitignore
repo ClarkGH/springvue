@@ -60,5 +60,10 @@ __screenshots__/
 .env.local
 .env.*.local
 
-# Backend Static Folder
+# Spring Backend Static Folder
 backend/src/main/resources/static
+
+# Rust Backend Static Folder
+rust-backend/target/
+rust-backend/**/*.rs.bk
+*.pdb
