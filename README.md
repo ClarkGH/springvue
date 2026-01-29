@@ -37,9 +37,14 @@ YAGNI'ing up a spring & vue SPA monolith proof of concept. Doesn't need to be pr
 
 ---
 
-## Design
+## Design and docs
 
-Rules, architecture, and diagrams live in **[DESIGN.md](DESIGN.md)**. Start there for scope, stack, conventions, and Mermaid diagrams.
+Rules, architecture, and diagrams live in **[DESIGN.md](DESIGN.md)** and **[/docs](docs/)**. DESIGN.md indexes the split:
+
+- **docs/design.md** — General (scope, API contract, frontend, security, scale)
+- **docs/java.md** — Java (Spring) backend
+- **docs/rust.md** — Rust (Actix) backend
+- **docs/benchmarks.md** — Performance stipulations for comparing Rust vs Java
 
 ---
 
